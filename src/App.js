@@ -1,24 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+// import React, { useState, useEffect } from 'react';
+// import axios from 'axios';
+
+import { TodoProvider } from './reducers/ToDoReducer';
+import ToDoCard from './components/ToDoCard';
+import '../src/assets/styles/styles.scss';
 
 function App() {
+  // const [data, setData] = useState(null);
+
+  // useEffect(() => {
+  //   axios
+  //     .get('http://localhost:3000/todos')
+  //     .then((response) => {
+  //       setData(response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // }, []);
+
+  // return <div>{data ? <p>{data}</p> : <p>Loading...</p>}</div>;
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <TodoProvider>
+      <ToDoCard />
+    </TodoProvider>
   );
 }
 
