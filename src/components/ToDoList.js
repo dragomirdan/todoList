@@ -49,6 +49,11 @@ export default function ToDoList() {
     dispatch({ type: 'EDIT_TODO', payload: todo });
   };
 
+  const editCheckTodo = (todo) => {
+    // console.log(JSON.stringify(todo));
+    dispatch({ type: 'EDIT_CHECK_TODO', payload: todo });
+  };
+
   const deleteTodo = (id) => {
     dispatch({ type: 'DELETE_TODO', payload: id });
   };
@@ -70,7 +75,7 @@ export default function ToDoList() {
   const handleInsertTodo = (e) => {
     handleSubmit();
     // need to change math random into the id from the db
-    addTodo({ id: Math.random(), text: inputValue });
+    addTodo({ id: Math.random(), text: inputValue, checked: '-1' });
     setInputValue('');
   };
 
@@ -107,7 +112,11 @@ export default function ToDoList() {
 
   const handleSave = (todoEditId) => {
     // console.log({ id: todoEditId, text: editedTodoText });
-    editTodo({ id: todoEditId, text: editedTodoText });
+    editTodo({
+      id: todoEditId,
+      text: editedTodoText,
+      // checked: checked.indexOf(todoEditId),
+    });
     setEditing(false);
     setEditedTodoId(null);
     setEditedTodoText('');
@@ -123,13 +132,20 @@ export default function ToDoList() {
   const handleToggle = (value) => () => {
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
+    let valChecked;
+    // console.log(newChecked);
 
     if (currentIndex === -1) {
       newChecked.push(value);
+      valChecked = '1';
     } else {
       newChecked.splice(currentIndex, 1);
+      valChecked = '-1';
     }
-
+    editCheckTodo({
+      id: value,
+      checked: valChecked,
+    });
     setChecked(newChecked);
   };
 

@@ -11,9 +11,12 @@ const todoReducer = (state, action) => {
     case 'ADD_TODO':
       return {
         ...state,
-        todos: [...state.todos, action.payload],
+        todos: [...state.todos, action.payload].sort(
+          (a, b) => a.checked - b.checked
+        ),
       };
     case 'EDIT_TODO':
+      //   console.log('in reducer edit check: ' + JSON.stringify(state.todos));
       return {
         ...state,
         todos: state.todos.map((todo) => {
@@ -25,6 +28,22 @@ const todoReducer = (state, action) => {
           }
           return todo;
         }),
+      };
+    case 'EDIT_CHECK_TODO':
+      //   console.log('in reducer edit check: ' + JSON.stringify(state.todos));
+      return {
+        ...state,
+        todos: state.todos
+          .map((todo) => {
+            if (todo.id === action.payload.id) {
+              return {
+                ...todo,
+                checked: action.payload.checked,
+              };
+            }
+            return todo;
+          })
+          .sort((a, b) => a.checked - b.checked),
       };
     case 'DELETE_TODO':
       return {
