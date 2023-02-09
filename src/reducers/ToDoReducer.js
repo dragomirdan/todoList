@@ -13,6 +13,19 @@ const todoReducer = (state, action) => {
         ...state,
         todos: [...state.todos, action.payload],
       };
+    case 'EDIT_TODO':
+      return {
+        ...state,
+        todos: state.todos.map((todo) => {
+          if (todo.id === action.payload.id) {
+            return {
+              ...todo,
+              text: action.payload.text,
+            };
+          }
+          return todo;
+        }),
+      };
     case 'DELETE_TODO':
       return {
         ...state,

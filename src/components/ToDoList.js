@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { TodoContext } from '../reducers/ToDoReducer';
 
 import List from '@mui/material/List';
@@ -12,6 +12,7 @@ import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -35,15 +36,17 @@ export default function ToDoList() {
   const [checked, setChecked] = React.useState([0]);
   const [inputValue, setInputValue] = React.useState('');
   const [popupVisible, setPopupVisible] = React.useState(false);
-  const [originalText, setOriginalText] = React.useState('');
   const [editing, setEditing] = React.useState(false);
+  const [editedTodoId, setEditedTodoId] = React.useState(null);
+  const [editedTodoText, setEditedTodoText] = React.useState('');
 
   const addTodo = (todo) => {
     dispatch({ type: 'ADD_TODO', payload: todo });
-    const listItems = document.querySelectorAll('.todo-item');
-    listItems.forEach((item) => {
-      item.addEventListener('dblclick', handleDoubleClick);
-    });
+  };
+
+  const editTodo = (todo) => {
+    // console.log(JSON.stringify(todo));
+    dispatch({ type: 'EDIT_TODO', payload: todo });
   };
 
   const deleteTodo = (id) => {
@@ -52,6 +55,10 @@ export default function ToDoList() {
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
+  };
+
+  const handleEditChange = (event) => {
+    setEditedTodoText(event.target.value);
   };
 
   const handleSubmit = () => {
@@ -87,19 +94,30 @@ export default function ToDoList() {
   };
 
   const handleDoubleClick = (todo) => {
+    // console.log('in handleDblClick json' + JSON.stringify(todo));
     setEditing(true);
-    setOriginalText(todo.text);
+    setEditedTodoId(todo.id);
+    setEditedTodoText(todo.text);
   };
+  // useEffect(() => {
+  //   console.log(
+  //     'in use effect handleDblClick ' + editedTodoId + ' ' + editedTodoText
+  //   );
+  // });
 
-  const handleSave = (event) => {
+  const handleSave = (todoEditId) => {
+    // console.log({ id: todoEditId, text: editedTodoText });
+    editTodo({ id: todoEditId, text: editedTodoText });
     setEditing(false);
-    setOriginalText('');
+    setEditedTodoId(null);
+    setEditedTodoText('');
     // add code here to update the todo text in the list
   };
 
   const handleCancel = () => {
     setEditing(false);
-    setOriginalText('');
+    setEditedTodoId(null);
+    setEditedTodoText('');
   };
 
   const handleToggle = (value) => () => {
@@ -134,50 +152,76 @@ export default function ToDoList() {
             marginRight: 2,
           }}
         >
-          {
-            // state.todos.forEach(item => {
-            //todo.addEventListener('dblclick', handleDoubleClick);
-            //   });
-            // state.todos.map();
-            state.todos.map((todo) => {
-              const labelId = `checkbox-list-label-${todo.id}`;
+          {state.todos.map((todo) => {
+            const labelId = `checkbox-list-label-${todo.id}`;
 
-              return (
-                <ListItem
-                  key={todo.id}
-                  secondaryAction={
+            return (
+              <ListItem
+                key={todo.id}
+                disablePadding
+                onDoubleClick={(event) => {
+                  // setEditTodoObject({
+                  //   id: todo.id,
+                  //   text: todo.text,
+                  // });
+                  handleDoubleClick(todo);
+                }}
+              >
+                <ListItemButton role={undefined} dense>
+                  <ListItemIcon>
+                    <Checkbox
+                      edge="start"
+                      checked={checked.indexOf(todo.id) !== -1}
+                      tabIndex={-1}
+                      disableRipple
+                      inputProps={{ 'aria-labelledby': labelId }}
+                      onClick={handleToggle(todo.id)}
+                    />
+                  </ListItemIcon>
+                  {editing && editedTodoId === todo.id ? (
+                    <TextField
+                      variant="standard"
+                      value={editedTodoText}
+                      onChange={(event) => {
+                        setEditedTodoText(event.target.value);
+                        handleEditChange(event);
+                      }}
+                    />
+                  ) : (
+                    <ListItemText id={labelId} primary={todo.text} />
+                  )}
+                </ListItemButton>
+                {editing && editedTodoId === todo.id ? (
+                  <>
                     <IconButton
                       edge="end"
-                      aria-label="delete"
-                      onClick={() => deleteTodo(todo.id)}
+                      aria-label="save"
+                      onClick={(event) => {
+                        handleSave(todo.id);
+                      }}
                     >
-                      <DeleteIcon />
+                      <AddIcon />
                     </IconButton>
-                  }
-                  disablePadding
-                >
-                  <ListItemButton
-                    role={undefined}
-                    // onClick={handleToggle(todo.id)}
-                    onDoubleClick={handleDoubleClick}
-                    dense
+                    <IconButton
+                      edge="end"
+                      aria-label="cancel"
+                      onClick={handleCancel}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </>
+                ) : (
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => deleteTodo(todo.id)}
                   >
-                    <ListItemIcon>
-                      <Checkbox
-                        edge="start"
-                        checked={checked.indexOf(todo.id) !== -1}
-                        tabIndex={-1}
-                        disableRipple
-                        inputProps={{ 'aria-labelledby': labelId }}
-                        onClick={handleToggle(todo.id)}
-                      />
-                    </ListItemIcon>
-                    <ListItemText id={labelId} primary={todo.text} />
-                  </ListItemButton>
-                </ListItem>
-              );
-            })
-          }
+                    <DeleteIcon />
+                  </IconButton>
+                )}
+              </ListItem>
+            );
+          })}
           <ListItem
             key="0"
             secondaryAction={
