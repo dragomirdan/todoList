@@ -24,6 +24,7 @@ import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const boxStyle = {
   position: 'absolute',
@@ -32,11 +33,21 @@ const boxStyle = {
   transform: 'translate(-50%, -50%)',
   width: '25%',
   bgcolor: 'background.paper',
-  // border: '1px solid #000',
   borderRadius: '3%',
   boxShadow: 24,
   p: 4,
 };
+
+const theme = createTheme({
+  palette: {
+    gold: {
+      main: 'rgba(255, 217, 0)',
+    },
+    danger: {
+      main: 'rgba(228, 25, 25, 0.9)',
+    },
+  },
+});
 
 export default function ToDoList() {
   const { state, dispatch } = useContext(TodoContext);
@@ -56,7 +67,6 @@ export default function ToDoList() {
   const addTodo = (todo) => {
     createTodo(todo)
       .then((newTodo) => {
-        // console.log('in res createTodo ' + newTodo);
         dispatch({
           type: 'ADD_TODO',
           payload: { ...newTodo, id: newTodo._id },
@@ -71,14 +81,12 @@ export default function ToDoList() {
   const editTodo = (todo) => {
     updateTodo(todo)
       .then((newTodo) => {
-        // console.log('in res createTodo ' + newTodo);
         dispatch({ type: 'EDIT_TODO', payload: newTodo });
         getTodos()
           .then((todos) => dispatch({ type: 'GET_TODOS', payload: todos }))
           .catch((error) => console.error('Error fetching todos: ', error));
       })
       .catch((error) => console.error('Error creating todo: ', error));
-    // console.log(JSON.stringify(todo));
   };
 
   const editCheckTodo = (todo) => {
@@ -138,22 +146,18 @@ export default function ToDoList() {
   };
 
   const handleDoubleClick = (todo) => {
-    // console.log('in handleDblClick json' + JSON.stringify(todo));
     setEditing(true);
     setEditedTodoId(todo._id);
     setEditedTodoText(todo.text);
   };
   const handleSave = (todoEditId) => {
-    // console.log({ id: todoEditId, text: editedTodoText });
     editTodo({
       _id: todoEditId,
       text: editedTodoText,
-      // completed: completed.indexOf(todoEditId),
     });
     setEditing(false);
     setEditedTodoId(null);
     setEditedTodoText('');
-    // add code here to update the todo text in the list
   };
 
   const handleCancel = () => {
@@ -197,37 +201,33 @@ export default function ToDoList() {
         <List
           sx={{
             width: '100%',
-            // maxWidth: 300,
-            // bgcolor: 'background.paper',
             marginLeft: 2,
             marginRight: 2,
           }}
         >
           {state.todos.map((todo) => {
             const labelId = `checkbox-list-label-${todo._id}`;
-            // console.log(JSON.stringify(todo));
             return (
               <ListItem
                 key={todo._id}
                 disablePadding
                 onDoubleClick={(event) => {
-                  // setEditTodoObject({
-                  //   id: todo.id,
-                  //   text: todo.text,
-                  // });
                   handleDoubleClick(todo);
                 }}
               >
                 <ListItemButton role={undefined} dense>
                   <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={todo.completed}
-                      tabIndex={-1}
-                      disableRipple
-                      inputProps={{ 'aria-labelledby': labelId }}
-                      onClick={handleToggle(todo._id)}
-                    />
+                    <ThemeProvider theme={theme}>
+                      <Checkbox
+                        edge="start"
+                        checked={todo.completed}
+                        tabIndex={-1}
+                        disableRipple
+                        inputProps={{ 'aria-labelledby': labelId }}
+                        onClick={handleToggle(todo._id)}
+                        color="gold"
+                      />
+                    </ThemeProvider>
                   </ListItemIcon>
                   {editing && editedTodoId === todo._id ? (
                     <TextField
@@ -267,25 +267,15 @@ export default function ToDoList() {
                     aria-label="delete"
                     onClick={() => handleDeleteTodo(todo._id)}
                   >
-                    <DeleteIcon />
+                    <ThemeProvider theme={theme}>
+                      <DeleteIcon color="danger" />
+                    </ThemeProvider>
                   </IconButton>
                 )}
               </ListItem>
             );
           })}
-          <ListItem
-            key="0"
-            secondaryAction={
-              <IconButton
-                edge="end"
-                aria-label="insert"
-                onClick={handleInsertTodo}
-              >
-                <AddIcon />
-              </IconButton>
-            }
-            disablePadding
-          >
+          <ListItem key="0" disablePadding>
             <ListItemButton
               role={undefined}
               type="submit"
@@ -293,18 +283,20 @@ export default function ToDoList() {
               dense
             >
               <ListItemIcon>
-                <Checkbox
-                  edge="start"
-                  disabled
-                  tabIndex={-1}
-                  disableRipple
-                  // inputProps={{ 'aria-labelledby': labelId }}
-                />
+                <ThemeProvider theme={theme}>
+                  <Checkbox
+                    edge="start"
+                    disabled
+                    tabIndex={-1}
+                    disableRipple
+                    // inputProps={{ 'aria-labelledby': labelId }}
+                  />
+                </ThemeProvider>
               </ListItemIcon>
               <ListItemText>
                 <TextField
                   id="standard-basic1"
-                  label="Insert new To Do"
+                  label="Insert new todo"
                   variant="standard"
                   value={inputValue}
                   onChange={handleInputChange}
@@ -312,17 +304,16 @@ export default function ToDoList() {
                 />
               </ListItemText>
             </ListItemButton>
+            <IconButton
+              edge="end"
+              aria-label="insert"
+              onClick={handleInsertTodo}
+            >
+              <AddIcon />
+            </IconButton>
           </ListItem>
         </List>
       </div>
-
-      {/* <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => addTodo({ id: Date.now(), text: 'New Todo' })}
-        >
-          Add ToDo
-        </Button> */}
       <div
         style={{
           justifyContent: 'space-around',
@@ -350,27 +341,33 @@ export default function ToDoList() {
                 alignItems="center"
                 marginTop={3}
               >
-                <Button
-                  variant="outlined"
-                  startIcon={<DeleteIcon />}
-                  onClick={handleConfirmDelete}
-                >
-                  Confirm
-                </Button>
-                <Button variant="contained" onClick={handleCancelDelete}>
+                <ThemeProvider theme={theme}>
+                  <Button
+                    color="danger"
+                    variant="outlined"
+                    onClick={handleConfirmDelete}
+                  >
+                    Confirm
+                  </Button>
+                </ThemeProvider>
+
+                <Button variant="outlined" onClick={handleCancelDelete}>
                   Cancel
                 </Button>
               </Stack>
             </Box>
           </Modal>
         )}
-        <Button
-          variant="outlined"
-          startIcon={<DeleteIcon />}
-          onClick={handleDeleteAllClick}
-        >
-          Delete All
-        </Button>
+        <ThemeProvider theme={theme}>
+          <Button
+            variant="outlined"
+            color="danger"
+            startIcon={<DeleteIcon />}
+            onClick={handleDeleteAllClick}
+          >
+            Delete All
+          </Button>
+        </ThemeProvider>
       </div>
     </div>
   );
