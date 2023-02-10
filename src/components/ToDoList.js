@@ -1,5 +1,12 @@
 import React, { useContext, useEffect } from 'react';
 import { TodoContext } from '../reducers/ToDoReducer';
+import {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  deleteTodos,
+} from '../services/todo.service';
 
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -33,15 +40,32 @@ const boxStyle = {
 
 export default function ToDoList() {
   const { state, dispatch } = useContext(TodoContext);
-  const [checked, setChecked] = React.useState([0]);
+  const [completed, setCompleted] = React.useState([0]);
   const [inputValue, setInputValue] = React.useState('');
   const [popupVisible, setPopupVisible] = React.useState(false);
   const [editing, setEditing] = React.useState(false);
   const [editedTodoId, setEditedTodoId] = React.useState(null);
   const [editedTodoText, setEditedTodoText] = React.useState('');
 
+  useEffect(() => {
+    getTodos()
+      .then((todos) => dispatch({ type: 'GET_TODOS', payload: todos }))
+      .catch((error) => console.error('Error fetching todos: ', error));
+  }, [dispatch]);
+
   const addTodo = (todo) => {
-    dispatch({ type: 'ADD_TODO', payload: todo });
+    createTodo(todo)
+      .then((newTodo) => {
+        // console.log('in res createTodo ' + newTodo);
+        dispatch({
+          type: 'ADD_TODO',
+          payload: { ...newTodo, id: newTodo._id },
+        });
+        getTodos()
+          .then((todos) => dispatch({ type: 'GET_TODOS', payload: todos }))
+          .catch((error) => console.error('Error fetching todos: ', error));
+      })
+      .catch((error) => console.error('Error creating todo: ', error));
   };
 
   const editTodo = (todo) => {
@@ -54,8 +78,10 @@ export default function ToDoList() {
     dispatch({ type: 'EDIT_CHECK_TODO', payload: todo });
   };
 
-  const deleteTodo = (id) => {
-    dispatch({ type: 'DELETE_TODO', payload: id });
+  const handleDeleteTodo = (id) => {
+    deleteTodo(id)
+      .then(() => dispatch({ type: 'DELETE_TODO', payload: id }))
+      .catch((error) => console.error('Error deleting todo: ', error));
   };
 
   const handleInputChange = (event) => {
@@ -66,16 +92,8 @@ export default function ToDoList() {
     setEditedTodoText(event.target.value);
   };
 
-  const handleSubmit = () => {
-    // Submit inputValue here
-    // this.addTodo({ id: Date.now(), text: inputValue });
-    // console.log(inputValue);
-  };
-
   const handleInsertTodo = (e) => {
-    handleSubmit();
-    // need to change math random into the id from the db
-    addTodo({ id: Math.random(), text: inputValue, checked: '-1' });
+    addTodo({ id: Date.now(), text: inputValue, completed: false });
     setInputValue('');
   };
 
@@ -101,21 +119,15 @@ export default function ToDoList() {
   const handleDoubleClick = (todo) => {
     // console.log('in handleDblClick json' + JSON.stringify(todo));
     setEditing(true);
-    setEditedTodoId(todo.id);
+    setEditedTodoId(todo._id);
     setEditedTodoText(todo.text);
   };
-  // useEffect(() => {
-  //   console.log(
-  //     'in use effect handleDblClick ' + editedTodoId + ' ' + editedTodoText
-  //   );
-  // });
-
   const handleSave = (todoEditId) => {
     // console.log({ id: todoEditId, text: editedTodoText });
     editTodo({
-      id: todoEditId,
+      _id: todoEditId,
       text: editedTodoText,
-      // checked: checked.indexOf(todoEditId),
+      // completed: completed.indexOf(todoEditId),
     });
     setEditing(false);
     setEditedTodoId(null);
@@ -130,23 +142,23 @@ export default function ToDoList() {
   };
 
   const handleToggle = (value) => () => {
-    const currentIndex = checked.indexOf(value);
-    const newChecked = [...checked];
-    let valChecked;
-    // console.log(newChecked);
+    const currentIndex = completed.indexOf(value);
+    const newCompleted = [...completed];
+    let valCompleted;
+    // console.log(valCompleted);
 
     if (currentIndex === -1) {
-      newChecked.push(value);
-      valChecked = '1';
+      newCompleted.push(value);
+      valCompleted = true;
     } else {
-      newChecked.splice(currentIndex, 1);
-      valChecked = '-1';
+      newCompleted.splice(currentIndex, 1);
+      valCompleted = false;
     }
     editCheckTodo({
-      id: value,
-      checked: valChecked,
+      _id: value,
+      completed: valCompleted,
     });
-    setChecked(newChecked);
+    setCompleted(newCompleted);
   };
 
   return (
@@ -169,11 +181,11 @@ export default function ToDoList() {
           }}
         >
           {state.todos.map((todo) => {
-            const labelId = `checkbox-list-label-${todo.id}`;
-
+            const labelId = `checkbox-list-label-${todo._id}`;
+            // console.log(JSON.stringify(todo));
             return (
               <ListItem
-                key={todo.id}
+                key={todo._id}
                 disablePadding
                 onDoubleClick={(event) => {
                   // setEditTodoObject({
@@ -187,14 +199,14 @@ export default function ToDoList() {
                   <ListItemIcon>
                     <Checkbox
                       edge="start"
-                      checked={checked.indexOf(todo.id) !== -1}
+                      checked={completed.indexOf(todo._id) !== -1}
                       tabIndex={-1}
                       disableRipple
                       inputProps={{ 'aria-labelledby': labelId }}
-                      onClick={handleToggle(todo.id)}
+                      onClick={handleToggle(todo._id)}
                     />
                   </ListItemIcon>
-                  {editing && editedTodoId === todo.id ? (
+                  {editing && editedTodoId === todo._id ? (
                     <TextField
                       variant="standard"
                       value={editedTodoText}
@@ -207,13 +219,13 @@ export default function ToDoList() {
                     <ListItemText id={labelId} primary={todo.text} />
                   )}
                 </ListItemButton>
-                {editing && editedTodoId === todo.id ? (
+                {editing && editedTodoId === todo._id ? (
                   <>
                     <IconButton
                       edge="end"
                       aria-label="save"
                       onClick={(event) => {
-                        handleSave(todo.id);
+                        handleSave(todo._id);
                       }}
                     >
                       <AddIcon />
@@ -230,7 +242,7 @@ export default function ToDoList() {
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    onClick={() => deleteTodo(todo.id)}
+                    onClick={() => handleDeleteTodo(todo._id)}
                   >
                     <DeleteIcon />
                   </IconButton>

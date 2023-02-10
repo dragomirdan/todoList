@@ -8,11 +8,18 @@ const TodoContext = createContext(initialState);
 
 const todoReducer = (state, action) => {
   switch (action.type) {
+    case 'GET_TODOS':
+      //   console.log('in reducer get: ' + JSON.stringify(action.payload));
+      return {
+        ...state,
+        todos: action.payload.sort((a, b) => a.completed - b.completed),
+      };
     case 'ADD_TODO':
+      //   console.log('in reducer add todo: ' + action.payload);
       return {
         ...state,
         todos: [...state.todos, action.payload].sort(
-          (a, b) => a.checked - b.checked
+          (a, b) => a.completed - b.completed
         ),
       };
     case 'EDIT_TODO':
@@ -20,7 +27,7 @@ const todoReducer = (state, action) => {
       return {
         ...state,
         todos: state.todos.map((todo) => {
-          if (todo.id === action.payload.id) {
+          if (todo._id === action.payload.id) {
             return {
               ...todo,
               text: action.payload.text,
@@ -35,20 +42,21 @@ const todoReducer = (state, action) => {
         ...state,
         todos: state.todos
           .map((todo) => {
-            if (todo.id === action.payload.id) {
+            if (todo._id === action.payload.id) {
               return {
                 ...todo,
-                checked: action.payload.checked,
+                completed: action.payload.completed,
               };
             }
             return todo;
           })
-          .sort((a, b) => a.checked - b.checked),
+          .sort((a, b) => a.completed - b.completed),
       };
     case 'DELETE_TODO':
+      //   console.log('in reducer delete: ' + action.payload);
       return {
         ...state,
-        todos: state.todos.filter((todo) => todo.id !== action.payload),
+        todos: state.todos.filter((todo) => todo._id !== action.payload),
       };
     case 'DELETE_ALL_TODOS':
       return {
