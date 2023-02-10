@@ -276,21 +276,10 @@ export default function ToDoList() {
             );
           })}
           <ListItem key="0" disablePadding>
-            <ListItemButton
-              role={undefined}
-              type="submit"
-              // onClick={handleToggle(todo.id)}
-              dense
-            >
+            <ListItemButton role={undefined} type="submit" dense>
               <ListItemIcon>
                 <ThemeProvider theme={theme}>
-                  <Checkbox
-                    edge="start"
-                    disabled
-                    tabIndex={-1}
-                    disableRipple
-                    // inputProps={{ 'aria-labelledby': labelId }}
-                  />
+                  <Checkbox edge="start" disabled tabIndex={-1} disableRipple />
                 </ThemeProvider>
               </ListItemIcon>
               <ListItemText>

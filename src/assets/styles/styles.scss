@@ -1,12 +1,9 @@
 .container {
-  //   background-color: #f4f5f5;
-  // padding: 50px;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  // margin-top: 5%;
 
   p {
     font-size: 24px;
@@ -47,15 +44,9 @@ html {
 }
 
 .bg-image {
-  /* The image used */
   height: 100%;
   width: 100%;
   background-image: url('../images/background.jpg');
-
-  /* Add the blur effect */
-  // filter: blur(8px);
-  // -webkit-filter: blur(8px);
-
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
