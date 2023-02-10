@@ -69,13 +69,32 @@ export default function ToDoList() {
   };
 
   const editTodo = (todo) => {
+    updateTodo(todo)
+      .then((newTodo) => {
+        // console.log('in res createTodo ' + newTodo);
+        dispatch({ type: 'EDIT_TODO', payload: newTodo });
+        getTodos()
+          .then((todos) => dispatch({ type: 'GET_TODOS', payload: todos }))
+          .catch((error) => console.error('Error fetching todos: ', error));
+      })
+      .catch((error) => console.error('Error creating todo: ', error));
     // console.log(JSON.stringify(todo));
-    dispatch({ type: 'EDIT_TODO', payload: todo });
   };
 
   const editCheckTodo = (todo) => {
-    // console.log(JSON.stringify(todo));
-    dispatch({ type: 'EDIT_CHECK_TODO', payload: todo });
+    console.log(JSON.stringify(todo));
+    updateTodo(todo)
+      .then((newTodo) => {
+        console.log('in res editCheckTodo ' + JSON.stringify(newTodo.todo));
+        dispatch({ type: 'EDIT_CHECK_TODO', payload: newTodo.todo });
+        getTodos()
+          .then((todos) => {
+            console.log(JSON.stringify(todos));
+            dispatch({ type: 'GET_TODOS', payload: todos });
+          })
+          .catch((error) => console.error('Error fetching todos: ', error));
+      })
+      .catch((error) => console.error('Error creating todo: ', error));
   };
 
   const handleDeleteTodo = (id) => {
@@ -107,8 +126,10 @@ export default function ToDoList() {
     setPopupVisible(true);
   };
 
-  const handleConfirmDelete = (id) => {
-    dispatch({ type: 'DELETE_ALL_TODOS', payload: id });
+  const handleConfirmDelete = () => {
+    deleteTodos()
+      .then(() => dispatch({ type: 'DELETE_ALL_TODOS' }))
+      .catch((error) => console.error('Error deleting todo: ', error));
     setPopupVisible(false);
   };
 
@@ -145,7 +166,8 @@ export default function ToDoList() {
     const currentIndex = completed.indexOf(value);
     const newCompleted = [...completed];
     let valCompleted;
-    // console.log(valCompleted);
+    console.log('current index ' + currentIndex + ' ' + value);
+    console.log('current states of checked ' + newCompleted);
 
     if (currentIndex === -1) {
       newCompleted.push(value);
@@ -158,6 +180,7 @@ export default function ToDoList() {
       _id: value,
       completed: valCompleted,
     });
+    console.log('current states of checked ' + newCompleted);
     setCompleted(newCompleted);
   };
 
@@ -199,7 +222,7 @@ export default function ToDoList() {
                   <ListItemIcon>
                     <Checkbox
                       edge="start"
-                      checked={completed.indexOf(todo._id) !== -1}
+                      checked={todo.completed}
                       tabIndex={-1}
                       disableRipple
                       inputProps={{ 'aria-labelledby': labelId }}
